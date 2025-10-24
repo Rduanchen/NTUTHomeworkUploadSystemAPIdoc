@@ -1,0 +1,822 @@
+openapi: 3.0.3
+info:
+  title: 系統 API
+  version: "1.0.0"
+  description: 提供系統相關資訊的 API
+tags:
+  - name: Auth
+    description: 認證與授權相關端點
+  - name: System
+    description: 系統相關端點
+paths:
+  /system/class-list:
+    get:
+      tags:
+        - System
+      summary: 取得現有的課程清單
+      description: 回傳現有的課程清單
+      operationId: getClassList
+      parameters: []
+      responses:
+        "200":
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClassListResponse"
+              examples:
+                success:
+                  value:
+                    classList:
+                      - "Mathematics"
+                      - "Science"
+                      - "History"
+        "500":
+          description: 伺服器錯誤
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                serverError:
+                  value:
+                    message: "server error"
+  /system/login-amount:
+    get:
+      tags:
+        - System
+      summary: 取得總使用者人數
+      description: 回傳總使用者人數
+      operationId: getLoginAmount
+      parameters: []
+      responses:
+        "200":
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginAmountResponse"
+              examples:
+                success:
+                  value:
+                    amount: 12345
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: 使用者登入
+      description: 使用者傳入登入資料，伺服器發出 session 許可（以 Set-Cookie 回傳 session）
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+            examples:
+              example:
+                value:
+                  username: alice
+                  password: "P@ssw0rd!"
+                  classname: "Math-101"
+      responses:
+        "200":
+          description: 登入成功，session 會由 Set-Cookie 寫入
+          headers:
+            Set-Cookie:
+              description: Session Cookie（例：session=<token>; HttpOnly; Secure; Path=/; SameSite=Lax）
+              schema:
+                type: string
+              example: "session=abc123; HttpOnly; Secure; Path=/; SameSite=Lax"
+          content: {}
+        "401":
+          description: 帳號或密碼錯誤
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                invalidCreds:
+                  value:
+                    code: AUTH_INVALID_CREDENTIALS
+                    message: 帳號或密碼錯誤
+        "500":
+          description: 伺服器錯誤
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                serverError:
+                  value:
+                    code: SERVER_ERROR
+                    message: 伺服器錯誤
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: 登出
+      description: 讓使用者的 session 失效
+      operationId: logout
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: 成功登出
+          content: {}
+        "401":
+          description: session 錯誤或無效
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                invalidSession:
+                  value:
+                    code: AUTH_INVALID_SESSION
+                    message: session 無效或不存在
+        "500":
+          description: 伺服器錯誤
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                serverError:
+                  value:
+                    code: SERVER_ERROR
+                    message: 伺服器錯誤
+  /auth/change-password:
+    post:
+      tags: [Auth]
+      summary: 更改使用者密碼
+      description: 以 session 驗證後更改密碼
+      operationId: changePassword
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChangePasswordRequest"
+            examples:
+              example:
+                value:
+                  oldpassword: "OldP@ss1"
+                  newpassword: "NewP@ss2"
+      responses:
+        "200":
+          description: 成功更改密碼
+          content: {}
+        "400":
+          description: 密碼錯誤（舊密碼不正確或新密碼不符合規範）
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                wrongPassword:
+                  value:
+                    code: AUTH_WRONG_PASSWORD
+                    message: 目前密碼錯誤
+        "401":
+          description: session 錯誤或無效
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                invalidSession:
+                  value:
+                    code: AUTH_INVALID_SESSION
+                    message: session 無效或不存在
+        "500":
+          description: 伺服器錯誤
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                serverError:
+                  value:
+                    code: SERVER_ERROR
+                    message: 伺服器錯誤
+  /auth/user-info:
+    get:
+      tags: [Auth]
+      summary: 取得使用者資訊
+      description: 透過 session 取得使用者的帳號與學號資訊
+      operationId: getUserInfo
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: 成功取得使用者資訊
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserInfoResponse"
+              examples:
+                success:
+                  value:
+                    username: alice
+                    studentID: "S12345678"
+        "401":
+          description: session 錯誤或無效
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                invalidSession:
+                  value:
+                    code: AUTH_INVALID_SESSION
+                    message: session 無效或不存在
+        "500":
+          description: 伺服器錯誤
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                serverError:
+                  value:
+                    code: SERVER_ERROR
+                    message: 伺服器錯誤
+  /auth/is-login:
+    get:
+      tags: [Auth]
+      summary: 檢查 Session 是否有效
+      description: 確認 session 是否還有效
+      operationId: isLogin
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Session 有效
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IsLoginResponse"
+              examples:
+                valid:
+                  value:
+                    valid: true
+        "401":
+          description: 已經失效或 session 錯誤
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                expired:
+                  value:
+                    code: AUTH_SESSION_EXPIRED
+                    message: session 已經失效
+        "500":
+          description: 伺服器錯誤
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                serverError:
+                  value:
+                    code: SERVER_ERROR
+                    message: 伺服器錯誤
+  /homework/list:
+    get:
+      tags: [Homework]
+      summary: 取得該使用者所有作業資訊
+      description: 透過 session 取得該使用者的作業清單與詳細狀態
+      operationId: getHomeworkList
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: 取得成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HomeworkListResponse"
+              examples:
+                success:
+                  value:
+                    homeworkList:
+                      - id: "hw-2025-001"
+                        type: "programming"
+                        deadline: "2025-11-01T23:59:59Z"
+                        isDone: false
+                        language: "python"
+                        isPassed: false
+        "401":
+          description: session expired or invalid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                expired:
+                  value:
+                    code: AUTH_SESSION_EXPIRED
+                    message: "session 已經過期或無效"
+        "500":
+          description: 伺服器錯誤
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /homework/upload:
+    post:
+      tags: [Homework]
+      summary: 上傳作業檔案
+      description: 上傳與指定 puzzleID 關聯的作業檔案（multipart/form-data）
+      operationId: uploadHomework
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - puzzleID
+                - file
+              properties:
+                puzzleID:
+                  type: string
+                  description: 題目 ID
+                  example: "puzzle-01"
+                file:
+                  type: string
+                  format: binary
+                  description: 要上傳的檔案
+      responses:
+        "200":
+          description: 已經上傳成功
+          content: {}
+        "400":
+          description: 文件不符合格式或請求錯誤
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                invalidFormat:
+                  value:
+                    code: HW_UPLOAD_INVALID_FORMAT
+                    message: "文件格式不符"
+        "409":
+          description: 檔案已存在
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                exists:
+                  value:
+                    code: HW_FILE_EXISTS
+                    message: "檔案已存在"
+        "422":
+          description: 上傳失敗（例如儲存或處理失敗）
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                uploadFailed:
+                  value:
+                    code: HW_UPLOAD_FAILED
+                    message: "上傳失敗"
+        "500":
+          description: 伺服器錯誤
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /homework/delete:
+    post:
+      tags: [Homework]
+      summary: 刪除已存在的作業檔案
+      description: 刪除指定 puzzleID 與 fileID 的檔案（需有修改權限）
+      operationId: deleteHomeworkFile
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - puzzleID
+                - fileID
+              properties:
+                puzzleID:
+                  type: string
+                  example: "puzzle-01"
+                fileID:
+                  type: string
+                  example: "file-abc-123"
+      responses:
+        "200":
+          description: 成功刪除
+          content: {}
+        "400":
+          description: 刪除失敗（例如請求不正確或無法刪除）
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                deleteFailed:
+                  value:
+                    code: HW_DELETE_FAILED
+                    message: "刪除失敗"
+        "403":
+          description: 沒有檔案修改權限
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                noPermission:
+                  value:
+                    code: AUTH_NO_PERMISSION
+                    message: "沒有檔案修改權限"
+        "500":
+          description: 伺服器錯誤
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /homework/file-list:
+    get:
+      tags: [Homework]
+      summary: 取得該使用者的作業檔案清單
+      description: 回傳使用者上傳的作業檔案清單
+      operationId: getHomeworkFileList
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: 回傳檔案清單
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FileListResponse"
+              examples:
+                success:
+                  value:
+                    file-list:
+                      - date: "2025-10-20T14:30:00Z"
+                        puzzleID: "puzzle-01"
+                        fileName: "solution.py"
+                        status: "pending"
+        "401":
+          description: session expired or invalid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: 伺服器錯誤
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /homework/puzzle-info:
+    post:
+      tags: [Homework]
+      summary: 取得題目資料
+      description: 透過 puzzleID 取得題目描述（需要 session）
+      operationId: getPuzzleInfo
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PuzzleInfoRequest"
+      responses:
+        "200":
+          description: 成功取得題目資料
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PuzzleInfoResponse"
+              examples:
+                success:
+                  value:
+                    description: "給定兩個數字，輸出它們的和。"
+        "401":
+          description: session expired or invalid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                expired:
+                  value:
+                    code: AUTH_SESSION_EXPIRED
+                    message: "session 已經過期或無效"
+        "403":
+          description: permission denied, 使用者沒有這個頁面的存取權限
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                denied:
+                  value:
+                    code: AUTH_NO_PERMISSION
+                    message: "使用者沒有此頁面的存取權限"
+        "500":
+          description: 伺服器錯誤
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /homework/passed-student-list:
+    post:
+      tags: [Homework]
+      summary: 取得已通過的學生學號清單
+      description: 取得通過某題的學生清單（需要 session）
+      operationId: getPassedStudentList
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - puzzleID
+              properties:
+                puzzleID:
+                  type: string
+                  example: "puzzle-01"
+      responses:
+        "200":
+          description: 成功取得通過學生清單
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StudentListResponse"
+              examples:
+                success:
+                  value:
+                    studentID:
+                      - "S12345678"
+                      - "S23456789"
+        "401":
+          description: session expired or invalid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                expired:
+                  value:
+                    code: AUTH_SESSION_EXPIRED
+                    message: "session 已經過期或無效"
+        "403":
+          description: permission denied, 使用者沒有這個頁面的存取權限
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                denied:
+                  value:
+                    code: AUTH_NO_PERMISSION
+                    message: "使用者沒有此頁面的存取權限"
+        "500":
+          description: 伺服器錯誤
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: session
+  schemas:
+    ClassListResponse:
+      type: object
+      required:
+        - classList
+      properties:
+        classList:
+          type: array
+          items:
+            type: string
+          description: 課程名稱清單
+    LoginAmountResponse:
+      type: object
+      required:
+        - amount
+      properties:
+        amount:
+          type: integer
+          format: int64
+          description: 總使用者人數
+    Error:
+      type: object
+      properties:
+        code:
+          type: string
+          description: 錯誤代碼
+          example: AUTH_INVALID_CREDENTIALS
+        message:
+          type: string
+          description: 錯誤訊息
+          example: 帳號或密碼錯誤
+    LoginRequest:
+      type: object
+      required:
+        - username
+        - password
+        - classname
+      properties:
+        username:
+          type: string
+          description: 使用者帳號
+          example: alice
+        password:
+          type: string
+          format: password
+          description: 使用者密碼
+          example: "P@ssw0rd!"
+        classname:
+          type: string
+          description: 課程班級名稱
+          example: "Math-101"
+    ChangePasswordRequest:
+      type: object
+      required:
+        - oldpassword
+        - newpassword
+      properties:
+        oldpassword:
+          type: string
+          format: password
+          description: 目前密碼
+          example: "OldP@ss1"
+        newpassword:
+          type: string
+          format: password
+          description: 新密碼
+          example: "NewP@ss2"
+    UserInfoResponse:
+      type: object
+      required:
+        - username
+        - studentID
+      properties:
+        username:
+          type: string
+          description: 使用者帳號
+          example: alice
+        studentID:
+          type: string
+          description: 學號
+          example: "S12345678"
+    IsLoginResponse:
+      type: object
+      required:
+        - valid
+      properties:
+        valid:
+          type: boolean
+          description: Session 是否有效
+          example: true
+    HomeworkItem:
+      type: object
+      required:
+        - id
+        - type
+        - deadline
+        - isDone
+        - language
+        - isPassed
+      properties:
+        id:
+          type: string
+          description: 作業或檔案 ID
+          example: "hw-2025-001"
+        type:
+          type: string
+          description: 作業類型
+          example: "programming"
+        deadline:
+          type: string
+          format: date-time
+          description: 繳交截止時間 (ISO 8601)
+          example: "2025-11-01T23:59:59Z"
+        isDone:
+          type: boolean
+          description: 是否已繳交
+          example: false
+        language:
+          type: string
+          description: 使用語言或檔案語言
+          example: "python"
+        isPassed:
+          type: boolean
+          description: 是否通過測試
+          example: false
+    HomeworkListResponse:
+      type: object
+      required:
+        - homeworkList
+      properties:
+        homeworkList:
+          type: array
+          items:
+            $ref: "#/components/schemas/HomeworkItem"
+          description: 該使用者的作業清單
+    FileListItem:
+      type: object
+      required:
+        - date
+        - puzzleID
+        - fileName
+        - status
+      properties:
+        date:
+          type: string
+          format: date-time
+          description: 上傳日期
+          example: "2025-10-20T14:30:00Z"
+        puzzleID:
+          type: string
+          description: 題目 ID
+          example: "puzzle-01"
+        fileName:
+          type: string
+          description: 檔案名稱
+          example: "solution.py"
+        status:
+          type: string
+          description: 檔案狀態
+          example: "pending"
+    FileListResponse:
+      type: object
+      required:
+        - file-list
+      properties:
+        file-list:
+          type: array
+          items:
+            $ref: "#/components/schemas/FileListItem"
+    PuzzleInfoRequest:
+      type: object
+      required:
+        - puzzleID
+      properties:
+        puzzleID:
+          type: string
+          description: 要查詢的題目 ID
+          example: "puzzle-01"
+        testCase:
+          type: array
+          description: (選填) 測資陣列（如果需要由 client 傳入）
+          items:
+            type: object
+            properties:
+              input:
+                type: string
+                example: "1 2"
+              output:
+                type: string
+                example: "3"
+    PuzzleInfoResponse:
+      type: object
+      required:
+        - description
+      properties:
+        description:
+          type: string
+          description: 題目描述
+          example: "給定兩個數字，輸出他們的和。"
+    StudentListResponse:
+      type: object
+      required:
+        - studentID
+      properties:
+        studentID:
+          type: array
+          items:
+            type: string
+          description: 已通過學生的學號清單
+          example: ["S12345678", "S23456789"]
+security:
+  - cookieAuth: []
+servers:
+  - url: /
+    description: 相對路徑伺服器（請依實際部署環境調整）
