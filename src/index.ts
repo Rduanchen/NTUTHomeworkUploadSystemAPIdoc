@@ -1,7 +1,7 @@
-const express = require('express');
+import express from 'express';
 const pathToSwaggerUi = require('swagger-ui-dist').absolutePath();
-const swaggerJSDoc = require('swagger-jsdoc');
-const swaggerUI = require('swagger-ui-express');
+import swaggerJSDoc from 'swagger-jsdoc';
+import swaggerUI from 'swagger-ui-express';
 
 const options = {
     definition: {
@@ -49,9 +49,6 @@ app.get('/', function (req, res) {
   res.send('<a href="/api-docs">Go to API Docs</a>');
 });
 
-// 這行是為了讓 swagger-ui-dist 的靜態檔案能被存取，但通常 swagger-ui-express 會處理好一切
-// 如果 '/api-docs' 正常運作，可以考慮移除這行
-app.use(express.static(pathToSwaggerUi));
 
 app.listen(3000, () => {
     console.log('Server is running on port 3000');
