@@ -5,18 +5,15 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-<<<<<<< HEAD
-    "dev": "nodemon index.js"
-=======
     "dev": "nodemon index.js",
     "start": "node index.js"
->>>>>>> 1c2b4050 (first commit)
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "express": "^5.1.0",
     "nodemon": "^3.1.10",
+    "swagger-jsdoc": "^6.2.8",
     "swagger-ui": "^5.29.5",
     "swagger-ui-dist": "^5.29.5",
     "swagger-ui-express": "^5.0.1"
