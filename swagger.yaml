@@ -8,6 +8,8 @@ tags:
     description: 認證與授權相關端點
   - name: System
     description: 系統相關端點
+  - name: Homework
+    description: 作業相關端點
 paths:
   /system/class-list:
     get:
@@ -599,6 +601,77 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+  /homework/check-test-result:
+    post:
+      tags: [Homework]
+      summary: 取得指定題目的測資結果
+      description: 透過 puzzleID 取得該題目的測資通過率與詳細日誌
+      operationId: checkTestResult
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CheckTestResultRequest"
+      responses:
+        "200":
+          description: 成功取得測資結果
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CheckTestResultResponse"
+              examples:
+                success:
+                  value:
+                    pass-rate: 0.8
+                    log:
+                      - id: "test-case-1"
+                        result: "Accepted"
+                        output: "Hello World"
+                      - id: "test-case-2"
+                        result: "Wrong Answer"
+                        output: "Helloworld"
+        "401":
+          description: session 錯誤或無效
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                invalidSession:
+                  value:
+                    code: AUTH_INVALID_SESSION
+                    message: session 無效或不存在
+        "403":
+          description: 沒有權限存取此題目
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                noPermission:
+                  value:
+                    code: AUTH_NO_PERMISSION
+                    message: "使用者沒有權限存取此題目"
+        "422":
+          description: 資料尚未準備完成
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                notReady:
+                  value:
+                    code: HW_RESULT_NOT_READY
+                    message: "測資結果尚未準備完成，請稍後再試"
+        "500":
+          description: 伺服器錯誤
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 components:
   securitySchemes:
     cookieAuth:
@@ -815,6 +888,50 @@ components:
             type: string
           description: 已通過學生的學號清單
           example: ["S12345678", "S23456789"]
+    CheckTestResultRequest:
+      type: object
+      required:
+        - puzzleID
+      properties:
+        puzzleID:
+          type: string
+          description: 要查詢的題目 ID
+          example: "puzzle-01"
+    CheckTestResultResponse:
+      type: object
+      required:
+        - "pass-rate"
+        - log
+      properties:
+        pass-rate:
+          type: number
+          format: float
+          description: 測資通過率 (0.0 ~ 1.0)
+          example: 0.8
+        log:
+          type: array
+          items:
+            $ref: "#/components/schemas/TestResultLogItem"
+          description: 每筆測資的詳細結果日誌
+    TestResultLogItem:
+      type: object
+      required:
+        - id
+        - result
+        - output
+      properties:
+        id:
+          type: string
+          description: 測資 ID
+          example: "test-case-1"
+        result:
+          type: string
+          description: 執行結果 (e.g., Accepted, Wrong Answer, Time Limit Exceeded)
+          example: "Accepted"
+        output:
+          type: string
+          description: 程式的實際輸出
+          example: "Hello World"
 security:
   - cookieAuth: []
 servers:
