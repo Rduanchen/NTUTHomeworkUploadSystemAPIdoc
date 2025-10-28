@@ -1,0 +1,67 @@
+{
+  "CLASS": {
+    "classList": [
+      {
+        "id": 0,
+        "name": "CS1"
+      },
+      {
+        "id": 1,
+        "name": "CS2"
+      }
+    ],
+    "loginAmount": 2
+  },
+  "USER": [
+    {
+      "id": 0,
+      "name": "Admin",
+      "studentId": "admin",
+      "password": "admin",
+      "class": 0
+    },
+    {
+      "id": 1,
+      "name": "User1",
+      "studentId": "user1",
+      "password": "password1",
+      "class": 1
+    }
+  ],
+  "PUZZLES": [
+    {
+      "id": 0,
+      "title": "Sample Puzzle",
+      "filename": "CS1_001.txt",
+      "deadline": "2025-12-31T23:59:59Z",
+      "language": "python"
+    },
+    {
+      "id": 1,
+      "title": "Another Puzzle",
+      "filename": "CS2_002.txt",
+      "language": "python",
+      "deadline": "2025-12-31T23:59:59Z"
+    }
+  ],
+  "SUBMISSION": [
+    {
+      "id": 0,
+      "puzzleId": 0,
+      "userId": 0,
+      "timestamp": "2024-01-01T12:00:00Z",
+      "status": "completed",
+      "completeRate": 100,
+      "codeFileName": "CS1_0_admin_0.txt"
+    },
+    {
+      "id": 1,
+      "puzzleId": 1,
+      "userId": 1,
+      "timestamp": "2024-02-01T15:30:00Z",
+      "status": "incomplete",
+      "completeRate": 50,
+      "codeFileName": "CS2_002_user1_1.py"
+    }
+  ]
+}
