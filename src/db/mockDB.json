@@ -12,7 +12,7 @@
     ],
     "loginAmount": 2
   },
-  "USER": [
+  "USERS": [
     {
       "id": 0,
       "name": "Admin",
@@ -31,6 +31,7 @@
   "PUZZLES": [
     {
       "id": 0,
+      "classId": 0,
       "title": "Sample Puzzle",
       "filename": "CS1_001.txt",
       "deadline": "2025-12-31T23:59:59Z",
@@ -38,9 +39,18 @@
     },
     {
       "id": 1,
+      "classId": 1,
       "title": "Another Puzzle",
       "filename": "CS2_002.txt",
       "language": "python",
+      "deadline": "2025-12-31T23:59:59Z"
+    },
+    {
+      "id": 2,
+      "classId": 0,
+      "title": "Third Puzzle",
+      "filename": "CS1_003.txt",
+      "language": "javascript",
       "deadline": "2025-12-31T23:59:59Z"
     }
   ],
@@ -62,6 +72,29 @@
       "status": "incomplete",
       "completeRate": 50,
       "codeFileName": "CS2_002_user1_1.py"
+    }
+  ],
+  "TEST_CASE_RESULTS": [
+    {
+      "id": "test-case-1",
+      "puzzleId": 0,
+      "userId": 0,
+      "result": "Accepted",
+      "output": "Hello World"
+    },
+    {
+      "id": "test-case-2",
+      "puzzleId": 0,
+      "userId": 0,
+      "result": "Accepted",
+      "output": "Hello World"
+    },
+    {
+      "id": "test-case-2",
+      "puzzleId": 1,
+      "userId": 1,
+      "result": "Wrong Answer",
+      "output": "Helloworld"
     }
   ]
 }

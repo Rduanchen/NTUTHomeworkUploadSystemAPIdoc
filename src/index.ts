@@ -5,6 +5,20 @@ import swaggerUI from "swagger-ui-express";
 import cors from "cors";
 import session from "express-session";
 
+declare module "express-session" {
+  interface SessionData {
+    [key: string]: any;
+  }
+}
+
+declare global {
+  namespace Express {
+    interface Request {
+      sessionID: string;
+    }
+  }
+}
+
 // 啟用 CORS 中介軟體，允許所有來源
 const corsOptions = cors({
   origin: "*",
@@ -49,13 +63,6 @@ const swaggerSpec = swaggerJSDoc(options);
 
 const app = express();
 
-// 設置 Swagger UI 的路由
-app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(swaggerSpec));
-
-app.get("/", function (req, res) {
-  res.send('<a href="/api-docs">Go to API Docs</a>');
-});
-
 app.use(corsOptions);
 app.use(express.json());
 app.use(
@@ -66,6 +73,19 @@ app.use(
     cookie: { secure: false }, // 在非 HTTPS 環境下設置為 false
   })
 );
+
+// 設置 Swagger UI 的路由
+app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(swaggerSpec));
+
+app.get("/", function (req, res) {
+  res.send('<a href="/api-docs">Go to API Docs</a>');
+});
+
+app.get("/api", (req, res) => {
+  console.log(req.session);
+  console.log(req.sessionID);
+  res.json({ message: "Hello from API", sessionID: req.sessionID });
+});
 
 app.listen(3000, () => {
   console.log("Server is running on port 3000");
