@@ -4,6 +4,7 @@ import swaggerJSDoc from "swagger-jsdoc";
 import swaggerUI from "swagger-ui-express";
 import cors from "cors";
 import session from "express-session";
+import apiRouter from "./routes/index";
 
 declare module "express-session" {
   interface SessionData {
@@ -21,7 +22,8 @@ declare global {
 
 // 啟用 CORS 中介軟體，允許所有來源
 const corsOptions = cors({
-  origin: "*",
+  origin: "http://localhost:3000", // 前端應用程式的 URL
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
   credentials: true,
 });
 const options = {
@@ -66,28 +68,43 @@ const app = express();
 app.use(corsOptions);
 app.use(express.json());
 app.use(
+  // session({
+  //   secret: "wESDEDfdmf",
+  //   resave: false,
+  //   saveUninitialized: true,
+  //   cookie: { secure: false, sameSite: "none", maxAge: 24 * 60 * 60 * 1000 }, // 1 天
+  // })
   session({
-    secret: "wESDEDfdmf",
+    secret: "secret-key",
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: false }, // 在非 HTTPS 環境下設置為 false
+    cookie: { secure: false },
   })
 );
 
 // 設置 Swagger UI 的路由
 app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(swaggerSpec));
 
+// 引用所有的 router
+app.use("/api", apiRouter);
+
+// 提供 Swagger UI 所需的靜態檔案
+app.use("/swagger-ui-assets", express.static(pathToSwaggerUi));
+
 app.get("/", function (req, res) {
   res.send('<a href="/api-docs">Go to API Docs</a>');
 });
 
-app.get("/api", (req, res) => {
-  console.log(req.session);
-  console.log(req.sessionID);
-  res.json({ message: "Hello from API", sessionID: req.sessionID });
+app.get("/status", (req, res) => {
+  if (!req.session.views) {
+    req.session.views = 1;
+  } else {
+    req.session.views++;
+  }
+  res.json({ status: "ok", views: req.session.views });
 });
 
-app.listen(3000, () => {
-  console.log("Server is running on port 3000");
-  console.log("API docs are available at http://localhost:3000/api-docs");
+app.listen(3001, () => {
+  console.log("Server is running on port 3001");
+  console.log("API docs are available at http://localhost:3001/api-docs");
 });

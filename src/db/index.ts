@@ -10,12 +10,23 @@ class DB {
   public getUsers() {
     return db.USERS;
   }
+  // public getUserByNameAndPassword(
+  //   name: string,
+  //   password: string,
+  //   className: string
+  // ) {
+  //   return db.USERS.find(
+  //     (user) =>
+  //       user.name === name &&
+  //       user.password === password &&
+  //       user.class === className
+  //   );
+  // }
   public getUserById(id: number) {
     return db.USERS.find((user) => user.id === id);
   }
   public updateUserPassword(id: number, newPassword: string) {
     const user = db.USERS.find((user) => user.id === id);
-    // mock
     return true;
   }
   public getUserHomeworkList(userId: number) {
@@ -28,7 +39,7 @@ class DB {
     );
   }
   public getSubmitHomeworkRecords(puzzleId: number, userId: number) {
-    return db.SUBMIT_HOMEWORK_RECORDS.filter(
+    return db.SUBMISSION.filter(
       (record) => record.puzzleId === puzzleId && record.userId === userId
     );
   }
